@@ -1,0 +1,51 @@
+CREATE TABLE IF NOT EXISTS dim_fund (
+    fund_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    amfi_code     TEXT UNIQUE NOT NULL,
+    scheme_name   TEXT,
+    fund_house    TEXT,
+    category      TEXT,
+    sub_category  TEXT,
+    risk_grade    TEXT
+);
+
+CREATE TABLE IF NOT EXISTS dim_date (
+    date_id   INTEGER PRIMARY KEY,
+    date      TEXT UNIQUE NOT NULL,
+    year      INTEGER,
+    month     INTEGER,
+    quarter   INTEGER,
+    day_name  TEXT
+);
+
+CREATE TABLE IF NOT EXISTS fact_nav (
+    nav_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id   INTEGER REFERENCES dim_fund(fund_id),
+    date_id   INTEGER REFERENCES dim_date(date_id),
+    nav       REAL NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS fact_transactions (
+    txn_id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id          INTEGER REFERENCES dim_fund(fund_id),
+    date_id          INTEGER REFERENCES dim_date(date_id),
+    transaction_type TEXT,
+    amount           REAL,
+    kyc_status       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS fact_performance (
+    perf_id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id       INTEGER REFERENCES dim_fund(fund_id),
+    date_id       INTEGER REFERENCES dim_date(date_id),
+    return_1y     REAL,
+    return_3y     REAL,
+    return_5y     REAL,
+    expense_ratio REAL
+);
+
+CREATE TABLE IF NOT EXISTS fact_aum (
+    aum_id  INTEGER PRIMARY KEY AUTOINCREMENT,
+    fund_id INTEGER REFERENCES dim_fund(fund_id),
+    date_id INTEGER REFERENCES dim_date(date_id),
+    aum     REAL
+);

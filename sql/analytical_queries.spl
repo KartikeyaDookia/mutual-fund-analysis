@@ -1,0 +1,45 @@
+-- 1. Top 5 funds by AUM
+SELECT scheme_name, aum FROM fact_aum
+ORDER BY aum DESC LIMIT 5;
+
+-- 2. Average NAV per month
+SELECT strftime('%Y-%m', date) AS month, ROUND(AVG(nav),2) AS avg_nav
+FROM nav_history GROUP BY month ORDER BY month;
+
+-- 3. SIP transactions YoY growth
+SELECT strftime('%Y', date) AS year, COUNT(*) AS sip_count,
+       ROUND(SUM(amount),2) AS total_amount
+FROM investor_transactions
+WHERE transaction_type = 'SIP'
+GROUP BY year ORDER BY year;
+
+-- 4. Transactions by state
+SELECT state, COUNT(*) AS txn_count, ROUND(SUM(amount),2) AS total
+FROM investor_transactions GROUP BY state ORDER BY total DESC;
+
+-- 5. Funds with expense_ratio < 1%
+SELECT scheme_name, expense_ratio FROM scheme_performance
+WHERE expense_ratio < 1.0 ORDER BY expense_ratio;
+
+-- 6. Best performing funds (1 year return)
+SELECT scheme_name, ROUND(return_1y,2) AS return_1y
+FROM scheme_performance ORDER BY return_1y DESC LIMIT 10;
+
+-- 7. Monthly redemption volume
+SELECT strftime('%Y-%m', date) AS month, ROUND(SUM(amount),2) AS redemptions
+FROM investor_transactions WHERE transaction_type = 'Redemption'
+GROUP BY month ORDER BY month;
+
+-- 8. Funds with consistent 3Y and 5Y returns > 12%
+SELECT scheme_name, return_3y, return_5y FROM scheme_performance
+WHERE return_3y > 12 AND return_5y > 12 ORDER BY return_5y DESC;
+
+-- 9. NAV growth % for each fund (first vs latest)
+SELECT amfi_code,
+       ROUND(((MAX(nav) - MIN(nav)) / MIN(nav)) * 100, 2) AS nav_growth_pct
+FROM nav_history GROUP BY amfi_code ORDER BY nav_growth_pct DESC;
+
+-- 10. KYC status breakdown
+SELECT kyc_status, COUNT(*) AS count,
+       ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 1) AS pct
+FROM investor_transactions GROUP BY kyc_status;
